@@ -10,7 +10,7 @@ public class DDoorTrigger : MonoBehaviour
 
     [SerializeField]
     private GameObject doorRight;
-
+    [SerializeField]
     private bool doorOpen = false;
 
     //new Vector Positions

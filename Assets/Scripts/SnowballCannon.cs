@@ -50,14 +50,22 @@ namespace DefaultNamespace {
             
             if(Input.GetKeyDown(KeyCode.Space))
                 Fire();
+
+            if (Input.GetKey(KeyCode.LeftBracket))
+                transform.rotation = transform.rotation * Quaternion.Euler(0, Time.deltaTime * 50, 0);
+            if (Input.GetKey(KeyCode.RightBracket))
+                transform.rotation = transform.rotation * Quaternion.Euler(0, Time.deltaTime * -50, 0);
             
             if (m_isLaunchInProgress) {
+                m_cannonBall.transform.parent = this.gameObject.transform;
                 m_remainingAirTime -= Time.deltaTime;
                 CalculateLaunchStep(Time.deltaTime);
-                m_cannonBall.transform.position = m_projectileTrajectoryPoints[m_currentLaunchStep].ToUnityVec3();
+                m_cannonBall.transform.localPosition = m_projectileTrajectoryPoints[m_currentLaunchStep].ToUnityVec3();
+                // m_cannonBall.transform.rotation = transform.rotation;
 
                 if (m_currentLaunchStep >= m_totalProjectileSteps) {
                     m_isLaunchInProgress = false;
+                    m_cannonBall.transform.parent = null;
                 }
             }
         }
@@ -68,6 +76,7 @@ namespace DefaultNamespace {
                 m_currentLaunchStep = 0;
                 m_remainingAirTime = m_projectileAirTime;
                 m_cannonBall.transform.position = Vector3.zero;
+                m_cannonBall.transform.rotation = transform.rotation;
             }
         }
 

@@ -25,9 +25,14 @@ namespace DefaultNamespace {
         private Vec3 m_initialVelocity = new Vec3();
 
         private float m_remainingAirTime = 0.0f;
+        [SerializeField]
         private float m_timeSinceLastStep = 0.0f;
         
-        float m_minStepTime;
+        [SerializeField]
+        private float m_minStepTime;
+
+        private GameObject backupCannonball;
+        private bool isPlayerCannonball = false;
         
         private void Start() {
             m_minStepTime = m_projectileAirTime / m_totalProjectileSteps;
@@ -46,15 +51,19 @@ namespace DefaultNamespace {
         }
 
         private void Update() {
-            
-            
-            if(Input.GetKeyDown(KeyCode.Space))
+            if(Input.GetKeyDown(KeyCode.F))
                 Fire();
-
+            if (Input.GetKeyDown(KeyCode.O)) {
+                m_cannonPower++;
+            }
+            if (Input.GetKeyDown(KeyCode.P)) {
+                m_cannonPower--;
+            }
+            
             if (Input.GetKey(KeyCode.LeftBracket))
-                transform.rotation = transform.rotation * Quaternion.Euler(0, Time.deltaTime * 50, 0);
-            if (Input.GetKey(KeyCode.RightBracket))
                 transform.rotation = transform.rotation * Quaternion.Euler(0, Time.deltaTime * -50, 0);
+            if (Input.GetKey(KeyCode.RightBracket))
+                transform.rotation = transform.rotation * Quaternion.Euler(0, Time.deltaTime * 50, 0);
             
             if (m_isLaunchInProgress) {
                 m_cannonBall.transform.parent = this.gameObject.transform;
@@ -65,9 +74,42 @@ namespace DefaultNamespace {
 
                 if (m_currentLaunchStep >= m_totalProjectileSteps) {
                     m_isLaunchInProgress = false;
-                    m_cannonBall.transform.parent = null;
+                    // m_cannonBall.transform.parent = null;
                 }
             }
+
+            if (Input.GetKeyDown(KeyCode.RightAlt)) {
+                isPlayerCannonball = !isPlayerCannonball;
+                FirePlayer();
+            }
+        }
+
+        private void FirePlayer() {
+            if (isPlayerCannonball) {
+                backupCannonball = m_cannonBall;
+                m_cannonBall = GameObject.FindWithTag("Player");
+                m_cannonBall.GetComponent<Rigidbody>().Sleep();
+            }
+            else {
+                m_cannonBall = backupCannonball;
+            }
+            
+            
+        }
+        
+        private void OnGUI() {
+            GUIStyle style = new GUIStyle();
+            style.fontSize = 20;
+            style.normal.textColor = new Color(0f, 0.6f, 0.737f);
+            GUI.Label(new Rect(50, 50, 150, 50), "Controls", style);
+            GUI.Label(new Rect(50, 70, 150, 50), "[ = Rotate Cannon left", style);
+            GUI.Label(new Rect(50, 90, 150, 50), "] = Rotate Cannon right", style);
+            GUI.Label(new Rect(50, 110, 150, 50), "F = Fire Cannon", style);
+            GUI.Label(new Rect(50, 130, 150, 50), "O = Increase power of cannon", style);
+            GUI.Label(new Rect(50, 150, 150, 50), "P = Decrease power of cannon", style);
+            
+            GUI.Label(new Rect(50, 200, 150, 50), "Current Cannon Power: " + m_cannonPower, style);
+            GUI.Label(new Rect(50, 220, 150, 150), "Cannon is ready to fire: " + (!m_isLaunchInProgress).ToString(), style);
         }
 
         private void Fire() {
@@ -75,8 +117,12 @@ namespace DefaultNamespace {
                 m_isLaunchInProgress = true;
                 m_currentLaunchStep = 0;
                 m_remainingAirTime = m_projectileAirTime;
+                m_cannonBall.transform.parent = transform;
                 m_cannonBall.transform.position = Vector3.zero;
                 m_cannonBall.transform.rotation = transform.rotation;
+                
+                CalculateAirTimeAndDisplacement();
+                CalculateTrajectory();
             }
         }
 
